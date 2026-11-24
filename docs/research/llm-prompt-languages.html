@@ -1,0 +1,231 @@
+<title>Język promptu a jakość LLM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,750&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: single reading column (~68ch) with full-width data blocks; sources as numbered footnotes [S#]. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #17202c;
+  --muted: #586374;
+  --line: #d9dee6;
+  --accent: #b3261e;
+  --accent-soft: #f6e3e1;
+  --en: #2f5d8a;
+  --good: #2e7d4f;
+  --warn: #a15c00;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161c; --surface: #1a2029; --ink: #e6e9ee; --muted: #9aa5b4; --line: #2c3440;
+    --accent: #ef7a70; --accent-soft: #3a2220; --en: #7fb0e0; --good: #6fcf97; --warn: #e0a64d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161c; --surface: #1a2029; --ink: #e6e9ee; --muted: #9aa5b4; --line: #2c3440;
+  --accent: #ef7a70; --accent-soft: #3a2220; --en: #7fb0e0; --good: #6fcf97; --warn: #e0a64d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 16px; line-height: 1.6;
+  padding-inline: 16px; padding-block: 40px 64px;
+}
+main { max-width: 780px; margin: 0 auto; display: grid; gap: 40px; }
+section { display: grid; gap: 14px; min-width: 0; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.7rem); font-weight: 750; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; font-weight: 750; }
+h3 { font-size: 1.08rem; font-weight: 600; }
+p, ul, ol { margin: 0; max-width: 68ch; }
+ul, ol { padding-left: 1.2em; display: grid; gap: 6px; }
+a { color: var(--en); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eyebrow { font-family: var(--f-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { font-size: 1.1rem; color: var(--muted); }
+.cite { font-family: var(--f-mono); font-size: 0.78em; color: var(--muted); white-space: nowrap; }
+.verdict {
+  background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent);
+  border-radius: 6px; padding: 20px 22px; display: grid; gap: 12px;
+}
+.verdict ol li::marker { font-family: var(--f-mono); color: var(--accent); }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td.num { text-align: right; font-family: var(--f-mono); }
+.pos { color: var(--good); } .neg { color: var(--accent); }
+caption { caption-side: bottom; text-align: left; padding: 8px 12px; color: var(--muted); font-size: 0.82rem; }
+.bars { display: grid; gap: 7px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; }
+.bar { display: grid; grid-template-columns: 6.5em 1fr 3.4em; gap: 10px; align-items: center; font-size: 0.88rem; }
+.bar .track { height: 12px; background: var(--bg); border-radius: 2px; position: relative; }
+.bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--muted); border-radius: 2px; }
+.bar.en .fill { background: var(--en); }
+.bar.pl .fill { background: var(--accent); }
+.bar .v { font-family: var(--f-mono); text-align: right; }
+.bars .note { font-size: 0.8rem; color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.tag { font-family: var(--f-mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; justify-self: start; }
+.tag.en { background: color-mix(in srgb, var(--en) 15%, transparent); color: var(--en); }
+.tag.pl { background: var(--accent-soft); color: var(--accent); }
+.tag.mix { background: color-mix(in srgb, var(--warn) 15%, transparent); color: var(--warn); }
+pre { margin: 0; overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; font-family: var(--f-mono); font-size: 0.82rem; line-height: 1.5; }
+.sources { font-size: 0.88rem; }
+.sources li { word-break: break-word; }
+footer { color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+
+<main>
+  <header style="display:grid; gap:12px;">
+    <span class="eyebrow">Raport badawczy · 24 listopada 2026</span>
+    <h1>W jakim języku rozmawiać z modelem językowym?</h1>
+    <p class="lede">Polski, angielski czy inny? Zestawienie wyników z recenzowanych publikacji (ACL, EMNLP, NeurIPS, COLM), preprintów arXiv i oficjalnej dokumentacji Anthropic. Bez blogów i artykułów z nieznanych źródeł.</p>
+  </header>
+
+  <section class="verdict" aria-labelledby="tldr">
+    <h2 id="tldr">Krótka odpowiedź</h2>
+    <ol>
+      <li><strong>Czołowe modele (Claude, GPT-4o, Gemini) rozumieją polski prawie tak dobrze jak angielski.</strong> Na tych samych pytaniach egzaminu lekarskiego GPT-4o miał 89,96% po polsku i 88,69% po angielsku. <span class="cite">[S1]</span></li>
+      <li><strong>Mniejsze i otwarte modele tracą po polsku 5–16 pkt proc.</strong> Przy Llama, Qwen, Mistral lub modelach lokalnych angielski prompt jest bezpieczniejszy. <span class="cite">[S1]</span></li>
+      <li><strong>Polski kosztuje więcej tokenów</strong>, około 1,8–1,9× więcej niż ten sam tekst po angielsku. To wyższy koszt API i szybsze zapełnienie okna kontekstu. <span class="cite">[S5, S6]</span></li>
+      <li><strong>W długim kontekście polski wypadł najlepiej z 26 języków</strong> (wyszukiwanie informacji w 64–128 tys. tokenów). Angielski był szósty. <span class="cite">[S3]</span></li>
+      <li><strong>Praktyczna reguła dla programistów:</strong> instrukcje systemowe, CLAUDE.md, nazwy w kodzie i komunikaty commitów po angielsku; rozmowa, wymagania biznesowe i treści dla polskich użytkowników mogą być po polsku.</li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="same">
+    <h2 id="same">Te same pytania w dwóch językach</h2>
+    <p>Najczystszy test to identyczne pytania zadane po polsku i po angielsku. Badanie na Lekarskim Egzaminie Końcowym (LEK) pokazuje, że różnica zależy przede wszystkim od wielkości modelu.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Model</th><th style="text-align:right">Polski</th><th style="text-align:right">Angielski</th><th style="text-align:right">PL − EN</th></tr></thead>
+        <tbody>
+          <tr><td>GPT-4o (2024-08-06)</td><td class="num">89,96</td><td class="num">88,69</td><td class="num pos">+1,27</td></tr>
+          <tr><td>Llama-3.1-70B-Instruct</td><td class="num">80,94</td><td class="num">82,60</td><td class="num neg">−1,66</td></tr>
+          <tr><td>Qwen2.5-72B-Instruct</td><td class="num">76,87</td><td class="num">81,93</td><td class="num neg">−5,06</td></tr>
+          <tr><td>Mistral-Large-Instruct-2407</td><td class="num">76,75</td><td class="num">82,40</td><td class="num neg">−5,65</td></tr>
+          <tr><td>Llama-3.1-8B</td><td class="num">51,25</td><td class="num">64,69</td><td class="num neg">−13,44</td></tr>
+          <tr><td>Qwen2.5-7B</td><td class="num">51,92</td><td class="num">67,73</td><td class="num neg">−15,81</td></tr>
+        </tbody>
+        <caption>Trafność (%) na pytaniach LEK. Źródło: Grzybowski i in., Findings of EMNLP 2025 [S1]. Różnica wyliczona z wartości w źródle.</caption>
+      </table>
+    </div>
+    <p>Wiedza o polskiej kulturze, historii i języku to osobna oś. W benchmarku PLCC (600 pytań) najlepsze modele zamknięte uzyskały 81–83% (Gemini-Exp-1206 83,00; Claude 3.5 Sonnet 82,67; GPT-4o 81,33), a najlepszy model otwarty, DeepSeek-V3, 69,17. <span class="cite">[S2]</span></p>
+  </section>
+
+  <section aria-labelledby="long">
+    <h2 id="long">Długi kontekst: niespodziewanie dobry polski</h2>
+    <p>Benchmark OneRuler (COLM 2025) przenosi zadania typu „igła w stogu siana” na 26 języków. Przy kontekście 64–128 tys. tokenów polski uzyskał średnio 88% we wszystkich modelach i zajął pierwsze miejsce. Angielski był szósty (83,9%), a dobrze wypadły też języki romańskie. Języki o małych zasobach traciły najwięcej wraz ze wzrostem długości kontekstu. <span class="cite">[S3]</span></p>
+    <p>Autorzy zaznaczają, że kolejność zależy od zadania i długości kontekstu. Wynik nie znaczy, że polski jest „lepszy do promptowania” w ogóle. Znaczy, że czołowe modele nie gubią się w długich polskich dokumentach.</p>
+  </section>
+
+  <section aria-labelledby="tokens">
+    <h2 id="tokens">Koszt: ile tokenów zużywa ten sam tekst</h2>
+    <p>Ceny API są liczone za token. Tokenizery dzielą tekst w językach fleksyjnych na więcej kawałków, więc ta sama treść po polsku jest droższa i zajmuje więcej miejsca w oknie kontekstu. Petrov i in. (NeurIPS 2023) pokazali, że różnice między językami sięgają nawet 15× i występują we wszystkich 17 badanych tokenizerach. <span class="cite">[S5]</span></p>
+    <div class="bars" role="img" aria-label="Średnia liczba tokenów na słowo w tekście równoległym: angielski 1,23, hiszpański 1,46, francuski 1,52, niemiecki 1,76, polski 2,25, czeski 2,28, ukraiński 2,66">
+      <div class="bar en"><span>angielski</span><span class="track"><span class="fill" style="width:44.7%"></span></span><span class="v">1,23</span></div>
+      <div class="bar"><span>hiszpański</span><span class="track"><span class="fill" style="width:53.1%"></span></span><span class="v">1,46</span></div>
+      <div class="bar"><span>francuski</span><span class="track"><span class="fill" style="width:55.3%"></span></span><span class="v">1,52</span></div>
+      <div class="bar"><span>niemiecki</span><span class="track"><span class="fill" style="width:64%"></span></span><span class="v">1,76</span></div>
+      <div class="bar pl"><span>polski</span><span class="track"><span class="fill" style="width:81.8%"></span></span><span class="v">2,25</span></div>
+      <div class="bar"><span>czeski</span><span class="track"><span class="fill" style="width:82.9%"></span></span><span class="v">2,28</span></div>
+      <div class="bar"><span>ukraiński</span><span class="track"><span class="fill" style="width:96.7%"></span></span><span class="v">2,66</span></div>
+      <span class="note">Średnia liczba tokenów na słowo w tekście równoległym, skala 0–2,75. Źródło: „The Tokenizer Tax Across 24 European Languages”, arXiv 2026, preprint [S6]. W tokenizerze GPT-4 (cl100k_base) polski tekst wymaga 1,91× więcej tokenów niż angielski [S5].</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="why">
+    <h2 id="why">Dlaczego angielski bywa bezpieczniejszy</h2>
+    <ul>
+      <li><strong>Modele „myślą” blisko angielskiego.</strong> Analiza warstw Llama-2 (ACL 2024) pokazała, że w środkowych warstwach model przypisuje wyższe prawdopodobieństwo angielskiej wersji odpowiedzi niż wersji w języku wejścia. Przestrzeń pojęć leży bliżej angielskiego. <span class="cite">[S4]</span></li>
+      <li><strong>Angielski jako język pośredni poprawia wyniki.</strong> Technika XLT (Microsoft, Findings of EMNLP 2023) każe modelowi przeformułować zadanie po angielsku, rozumować po angielsku i odpowiedzieć w języku docelowym. Dało to średnio ponad 10 pkt poprawy w rozumowaniu arytmetycznym i odpowiadaniu na pytania. <span class="cite">[S7]</span></li>
+      <li><strong>Dane treningowe i dokumentacja techniczna są głównie po angielsku.</strong> Nazwy bibliotek, komunikaty błędów, API i przykłady kodu model zna przede wszystkim w tej wersji.</li>
+      <li><strong>Polski często nie pojawia się w raportach producentów.</strong> Brakuje go w tabeli Global-MMLU w dokumentacji Claude i w MMMLU OpenAI, więc dane o polskim pochodzą głównie z niezależnych badań. <span class="cite">[S8, S9]</span></li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="other">
+    <h2 id="other">Inne języki</h2>
+    <p>Dokumentacja Anthropic podaje wyniki Claude jako procent wyniku po angielsku. Na Global-MMLU najnowsze modele osiągają około 99% po hiszpańsku i portugalsku. W starszych tabelach języki o małych zasobach wypadały wyraźnie słabiej, na przykład joruba około 80% dla najlepszego modelu. <span class="cite">[S8]</span></p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Grupa</th><th>Przykłady</th><th>Co wiemy</th></tr></thead>
+        <tbody>
+          <tr><td>Angielski</td><td>EN</td><td>Punkt odniesienia benchmarków; najniższy koszt tokenów.</td></tr>
+          <tr><td>Duże języki zachodnie</td><td>ES, PT, FR, DE, IT</td><td>Blisko 100% wyniku angielskiego w czołowych modelach [S8]; 1,2–1,4× tokenów [S6].</td></tr>
+          <tr><td>Polski i słowiańskie</td><td>PL, CS, SK, UK, BG</td><td>Czołowe modele prawie bez straty, mniejsze modele z wyraźną stratą [S1]; 1,8–2,2× tokenów [S6].</td></tr>
+          <tr><td>Języki o małych zasobach</td><td>joruba, suahili</td><td>Największe spadki jakości i najwięcej tokenów [S5, S8].</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Dla polskiego istnieją też modele trenowane specjalnie pod ten język: Bielik (SpeakLeash) i PLLuM (konsorcjum polskich uczelni). Bielik-11B-v2.3-Instruct uzyskał 65,71 na Open PL LLM Leaderboard. Zoptymalizowany tokenizer Bielika v3 mniej więcej o połowę zmniejsza liczbę tokenów w polskim tekście. <span class="cite">[S10, S11]</span></p>
+  </section>
+
+  <section aria-labelledby="how">
+    <h2 id="how">Rekomendacje dla pracy z Claude Code</h2>
+    <div class="grid2">
+      <div class="card">
+        <span class="tag en">Po angielsku</span>
+        <h3>Instrukcje trwałe i kod</h3>
+        <ul>
+          <li>CLAUDE.md, AGENTS.md, skille, prompty systemowe</li>
+          <li>nazwy zmiennych, funkcji, tabel, kolumn SQL</li>
+          <li>commity, komentarze w kodzie, ADR</li>
+          <li>prompty dla małych i lokalnych modeli</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="tag pl">Po polsku</span>
+        <h3>Rozmowa i domena</h3>
+        <ul>
+          <li>bieżąca rozmowa z Claude w czołowym modelu</li>
+          <li>wymagania biznesowe, terminy prawne i urzędowe</li>
+          <li>teksty UI i treści dla polskich użytkowników</li>
+          <li>długie polskie dokumenty źródłowe</li>
+        </ul>
+      </div>
+      <div class="card">
+        <span class="tag mix">Mieszane</span>
+        <h3>Wzorzec XLT</h3>
+        <ul>
+          <li>zadanie po polsku, rozumowanie po angielsku, odpowiedź po polsku</li>
+          <li>język odpowiedzi ustaw w prompcie systemowym, jak zaleca Anthropic [S8]</li>
+          <li>sprawdź wynik na własnym zestawie przykładów</li>
+        </ul>
+      </div>
+    </div>
+    <p>Przykład instrukcji językowej w CLAUDE.md:</p>
+<pre>## Language
+- Chat with the user in Polish.
+- Write code, identifiers, commits and docs in English.
+- Keep Polish domain terms (e.g. "TERYT", "działka ewidencyjna")
+  unchanged and explain them once in English.</pre>
+  </section>
+
+  <section aria-labelledby="src">
+    <h2 id="src">Źródła</h2>
+    <p>Uwzględniono wyłącznie publikacje recenzowane, preprinty arXiv z identyfikatorem i oficjalne strony producentów. Część liczb pochodzi z raportu <code>docs/research/llm-polish-slavic/</code>, w którym każdą wartość niezależnie zweryfikowano w źródle pierwotnym.</p>
+    <ol class="sources">
+      <li><strong>S1</strong> Grzybowski i in., „Polish-English medical knowledge transfer: A new benchmark and results”, Findings of EMNLP 2025. <a href="https://arxiv.org/abs/2412.00559">arxiv.org/abs/2412.00559</a></li>
+      <li><strong>S2</strong> Dadas i in., „Evaluating Polish linguistic and cultural competency in large language models” (PLCC), 2025. <a href="https://arxiv.org/abs/2503.00995">arxiv.org/abs/2503.00995</a></li>
+      <li><strong>S3</strong> Kim, Russell, Karpinska, Iyyer, „One ruler to measure them all: Benchmarking multilingual long-context language models”, COLM 2025. <a href="https://arxiv.org/abs/2503.01996">arxiv.org/abs/2503.01996</a></li>
+      <li><strong>S4</strong> Wendler, Veselovsky, Monea, West, „Do Llamas Work in English? On the Latent Language of Multilingual Transformers”, ACL 2024. <a href="https://aclanthology.org/2024.acl-long.820">aclanthology.org/2024.acl-long.820</a></li>
+      <li><strong>S5</strong> Petrov, La Malfa, Torr, Bibi, „Language Model Tokenizers Introduce Unfairness Between Languages”, NeurIPS 2023. <a href="https://arxiv.org/abs/2305.15425">arxiv.org/abs/2305.15425</a></li>
+      <li><strong>S6</strong> Ovcharov, „The Tokenizer Tax Across 24 European Languages”, 2026 (preprint). <a href="https://arxiv.org/abs/2605.24718">arxiv.org/abs/2605.24718</a></li>
+      <li><strong>S7</strong> Huang i in., „Not All Languages Are Created Equal in LLMs: Improving Multilingual Capability by Cross-Lingual-Thought Prompting”, Findings of EMNLP 2023. <a href="https://aclanthology.org/2023.findings-emnlp.826">aclanthology.org/2023.findings-emnlp.826</a></li>
+      <li><strong>S8</strong> Anthropic, „Multilingual support”, dokumentacja Claude. <a href="https://platform.claude.com/docs/en/build-with-claude/multilingual-support">platform.claude.com/docs/en/build-with-claude/multilingual-support</a></li>
+      <li><strong>S9</strong> OpenAI, MMMLU dataset card. <a href="https://huggingface.co/datasets/openai/MMMLU">huggingface.co/datasets/openai/MMMLU</a></li>
+      <li><strong>S10</strong> SpeakLeash, „Bielik 11B v2 Technical Report”, 2025. <a href="https://arxiv.org/abs/2505.02410">arxiv.org/abs/2505.02410</a></li>
+      <li><strong>S11</strong> Bielik team, „Advancing Polish Language Modeling Through Tokenizer Optimization in the Bielik v3 7B and 11B Series”, 2026. <a href="https://arxiv.org/abs/2604.10799">arxiv.org/abs/2604.10799</a></li>
+    </ol>
+  </section>
+
+  <footer>Ograniczenia: benchmarki akademickie nie zastąpią testu na własnych zadaniach. Wyniki modeli zmieniają się z każdą wersją; sprawdź aktualną dokumentację przed decyzją produkcyjną.</footer>
+</main>
