@@ -1,0 +1,16 @@
+model,lang,acc
+GPT-3.5-turbo (0-shot),EN,87.7
+GPT-3.5-turbo (0-shot),PL,74.7
+GPT-3.5-turbo (0-shot),CS,76.9
+GPT-3.5-turbo (0-shot),RU,78.4
+GPT-3.5-turbo (0-shot),UK,72.8
+Llama-2-chat 70B (0-shot),EN,78.8
+Llama-2-chat 70B (0-shot),PL,61.7
+Llama-2-chat 70B (0-shot),CS,65.0
+Llama-2-chat 70B (0-shot),RU,67.0
+Llama-2-chat 70B (0-shot),UK,65.7
+Llama 2 70B (5-shot),EN,90.9
+Llama 2 70B (5-shot),PL,79.2
+Llama 2 70B (5-shot),CS,81.1
+Llama 2 70B (5-shot),RU,82.7
+Llama 2 70B (5-shot),UK,80.8

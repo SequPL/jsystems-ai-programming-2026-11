@@ -1,0 +1,13 @@
+code,name_en,name_pl,family,tpw,ratio
+EN,English,angielski,baseline,1.23,1.00
+ES,Spanish,hiszpański,western,1.46,1.19
+FR,French,francuski,western,1.52,1.24
+IT,Italian,włoski,western,1.67,1.36
+DE,German,niemiecki,western,1.76,1.43
+PL,Polish,polski,polish,2.25,1.83
+CS,Czech,czeski,slavic,2.28,1.85
+SL,Slovenian,słoweński,slavic,2.28,1.85
+HR,Croatian,chorwacki,slavic,2.31,1.88
+BG,Bulgarian,bułgarski,slavic,2.33,1.89
+SK,Slovak,słowacki,slavic,2.45,1.99
+UK,Ukrainian,ukraiński,slavic,2.66,2.16

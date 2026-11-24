@@ -1,0 +1,14 @@
+id,language_en,language_pl,model,benchmark,native,en
+ru1,Russian,rosyjski,Llama 3.1 8B,MMLU 5-shot,56.9,68.2
+ru2,Russian,rosyjski,Qwen 2.5 7B,MMLU 5-shot,63.2,71.0
+ru3,Russian,rosyjski,GigaChat 2 Pro,MMLU 5-shot,77.5,82.1
+cs1,Czech,czeski,GPT-3.5 Turbo,CzechBench MMLU,58.0,64.9
+cs2,Czech,czeski,GPT-3.5 Turbo,CzechBench GSM8K,64.2,83.1
+cs3,Czech,czeski,Claude 3 Haiku,CzechBench MMLU,67.3,73.0
+cs4,Czech,czeski,Claude 3 Haiku,CzechBench GSM8K,78.6,89.0
+cs5,Czech,czeski,Llama 3 8B Instruct,CzechBench ARC-C,64.3,78.5
+cs6,Czech,czeski,GPT-4o,Tutoring (harmonic mean),43.8,94.7
+cs7,Czech,czeski,Mistral,Tutoring (harmonic mean),2.9,82.0
+bg1,Bulgarian,bułgarski,BgGPT-Gemma-2-9B,BgGPT suite avg,61.27,71.53
+bg2,Bulgarian,bułgarski,Gemma-2-9b-it (base),BgGPT suite avg,55.36,70.92
+bg3,Bulgarian,bułgarski,BgGPT-Gemma-2-27B,BgGPT suite avg,64.67,75.12

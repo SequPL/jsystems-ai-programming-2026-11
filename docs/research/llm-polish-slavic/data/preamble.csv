@@ -1,0 +1,7 @@
+tokenizer,pl,en,ratio
+"Bielik 11B v3 original (Mistral-based, 32k)",747,408,1.83
+Llama 3.2 / SmolLM3,653,371,1.76
+Qwen3,625,373,1.68
+Gemma 3,510,383,1.33
+EuroLLM,437,404,1.08
+APT4 (Polish-optimised),375,631,0.59

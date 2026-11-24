@@ -1,0 +1,9 @@
+model,pl,en,gap,group
+GPT-4o (2024-08-06),89.96,88.69,1.27,frontier
+Llama-3.1-70B-Instruct,80.94,82.60,-1.66,large-open
+Qwen2.5-72B-Instruct,76.87,81.93,-5.06,large-open
+Mistral-Large-Instruct-2407,76.75,82.40,-5.65,large-open
+GPT-4o-mini,75.88,75.92,-0.04,frontier
+Bielik-11B-v2.2-Instruct,62.36,56.98,5.38,polish
+Qwen2.5-7B-Instruct,51.92,67.73,-15.81,small-open
+Llama-3.1-8B-Instruct,51.25,64.69,-13.44,small-open
